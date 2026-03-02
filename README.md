@@ -226,4 +226,3 @@ Distribusi/
 4. **Multi-threading** — Penanganan concurrent connections pada server
 5. **Client-Server Architecture** — Arsitektur komunikasi berbasis request-response
 6. **TCP Socket Programming** — Komunikasi jaringan menggunakan protokol TCP
-# loadbalancer-python
