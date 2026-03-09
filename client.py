@@ -20,6 +20,9 @@ def get_timestamp():
     return datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
 
+import json
+import random
+
 def send_request(client_id, request_num):
     """Kirim satu request ke load balancer."""
     try:
@@ -27,14 +30,23 @@ def send_request(client_id, request_num):
         sock.settimeout(10)
         sock.connect((LOAD_BALANCER_HOST, LOAD_BALANCER_PORT))
 
-        # Kirim request
-        message = f"Client-{client_id} Request #{request_num}"
+        # 1. Buat Payload Tugas dalam bentuk JSON
+        task_types = ["Data Processing", "Image Rendering", "Database Query", "Send Email"]
+        task_payload = {
+            "client_id": client_id,
+            "task_id": f"TASK-{client_id}-{request_num}",
+            "task_type": random.choice(task_types),
+            "timestamp": get_timestamp()
+        }
+        
+        # Konversi ke string JSON (UTF-8)
+        message = json.dumps(task_payload)
         sock.sendall(message.encode("utf-8"))
-        print(f"[{get_timestamp()}] Client-{client_id} | Mengirim: \"{message}\"")
+        print(f"[{get_timestamp()}] Client-{client_id} | Mengirim misi: {message}")
 
         # Terima response
         response = sock.recv(4096).decode("utf-8")
-        print(f"[{get_timestamp()}] Client-{client_id} | Menerima: \"{response}\"")
+        print(f"[{get_timestamp()}] Client-{client_id} | Menerima Response: \"{response}\"")
 
         sock.close()
         return True

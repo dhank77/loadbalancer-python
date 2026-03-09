@@ -1,3 +1,5 @@
+# Nama: M. Hamdani Ilham Latjoro
+# NIM: D082252019
 # Sistem Distribusi dengan Load Balancer
 
 ## Deskripsi

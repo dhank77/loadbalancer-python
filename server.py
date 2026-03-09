@@ -15,8 +15,13 @@ def get_timestamp():
     return datetime.now().strftime("%H:%M:%S.%f")[:-3]
 
 
+import fcntl
+import os
+
+DATABASE_FILE = "database.txt"
+
 def handle_client(conn, addr, server_name, port):
-    """Menangani koneksi dari load balancer."""
+    """Menangani koneksi dari load balancer dan menulis ke database bersaman."""
     try:
         data = conn.recv(4096).decode("utf-8")
         if not data:
@@ -24,19 +29,41 @@ def handle_client(conn, addr, server_name, port):
 
         print(f"[{get_timestamp()}] {server_name} | Menerima request: \"{data}\"")
 
-        # Simulasi proses (delay kecil)
-        processing_time = 0.1
+        # 1. Simulasi memproses tugas (CPU-bound / I/O-bound simulation)
+        processing_time = 0.5
         time.sleep(processing_time)
+        
+        # 2. Persiapkan data log yang akan ditulis
+        log_entry = f"[{get_timestamp()}] {server_name} memproses '{data}' dari {addr[0]}\n"
 
-        # Buat response
+        # 3. Distributed Lock & Tulis ke Shared Database
+        # Buka file dalam mode append ('a')
+        with open(DATABASE_FILE, "a") as db_file:
+            print(f"[{get_timestamp()}] {server_name} | Menunggu lock pada {DATABASE_FILE}...")
+            # Mengakuisisi lock secara B EKSKLUSIF dan BLOCKING
+            # Jika proses (server) lain sedang memegang lock, eksekusi akan terhenti disini (sleep)
+            # sampai lock dilepaskan oleh server lain.
+            fcntl.flock(db_file.fileno(), fcntl.LOCK_EX)
+            try:
+                print(f"[{get_timestamp()}] {server_name} | Lock didapatkan, menulis ke database...")
+                db_file.write(log_entry)
+                # Pastikan data benar-benar tersimpan ke disk
+                db_file.flush()
+                os.fsync(db_file.fileno())
+                print(f"[{get_timestamp()}] {server_name} | Penulisan selesai.")
+            finally:
+                # Lepaskan lock
+                fcntl.flock(db_file.fileno(), fcntl.LOCK_UN)
+                print(f"[{get_timestamp()}] {server_name} | Lock dilepaskan.")
+
+        # 4. Buat response untuk dikembalikan ke Client
         response = (
             f"Response dari {server_name} (port {port}) | "
-            f"Request: \"{data}\" | "
-            f"Diproses dalam {processing_time}s"
+            f"Tugas '{data}' selesai diproses dalam {processing_time}s dan dicatat ke DB."
         )
 
         conn.sendall(response.encode("utf-8"))
-        print(f"[{get_timestamp()}] {server_name} | Response dikirim ke {addr}")
+        print(f"[{get_timestamp()}] {server_name} | Response dikirim kembali ke Load Balancer")
 
     except ConnectionResetError:
         print(f"[{get_timestamp()}] {server_name} | Koneksi terputus dari {addr}")

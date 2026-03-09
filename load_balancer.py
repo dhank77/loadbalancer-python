@@ -29,6 +29,11 @@ index_lock = threading.Lock()
 stats = {port: 0 for _, port in BACKEND_SERVERS}
 stats_lock = threading.Lock()
 
+# Batas maksimal koneksi per server
+MAX_CONNECTIONS_PER_SERVER = 5
+# Semaphore untuk setiap backend server guna membatasi load
+server_semaphores = {port: threading.Semaphore(MAX_CONNECTIONS_PER_SERVER) for _, port in BACKEND_SERVERS}
+
 
 def get_timestamp():
     return datetime.now().strftime("%H:%M:%S.%f")[:-3]
@@ -47,26 +52,40 @@ def check_server_health(host, port, timeout=1):
 
 
 def get_next_server():
-    """Pilih server berikutnya dengan Round-Robin (skip yang tidak aktif)."""
+    """Pilih server berikutnya dengan Round-Robin (skip yang tidak aktif atau penuh)."""
     global current_server_index
 
-    with index_lock:
-        attempts = 0
-        while attempts < len(BACKEND_SERVERS):
+    attempts = 0
+    while attempts < len(BACKEND_SERVERS):
+        # Lock HANYA digunakan saat mengambil dan mengubah indeks server
+        # Ini mencegah blocking thread lain saat fungsi check_server_health berjalan
+        with index_lock:
             server = BACKEND_SERVERS[current_server_index]
             current_server_index = (current_server_index + 1) % len(BACKEND_SERVERS)
 
-            if check_server_health(server[0], server[1]):
-                return server
+        server_host, server_port = server
 
-            print(f"[{get_timestamp()}] Load Balancer | Server {server[1]} tidak aktif, skip...")
-            attempts += 1
+        # Cek apakah server ini masih bisa menerima koneksi (semaphore tidak kehabisan)
+        # acquiring dengan non-blocking (blocking=False), return True jika berhasil acquired lock
+        if server_semaphores[server_port].acquire(blocking=False):
+            # lock semaphore berhasil didapatkan, maka cek health-nya
+            if check_server_health(server_host, server_port):
+                return server
+            else:
+                # Jika health check gagal, kembalikan ketersediaan koneksi pada semaphore
+                server_semaphores[server_port].release()
+                print(f"[{get_timestamp()}] Load Balancer | Server {server_port} tidak aktif, skip...")
+        else:
+            print(f"[{get_timestamp()}] Load Balancer | Server {server_port} sedang sibuk (MAX koneksi tercapai), skip...")
+        
+        attempts += 1
 
     return None
 
 
 def forward_request(client_conn, client_addr):
     """Teruskan request dari client ke backend server."""
+    server = None
     try:
         # Terima request dari client
         data = client_conn.recv(4096).decode("utf-8")
@@ -76,10 +95,10 @@ def forward_request(client_conn, client_addr):
         print(f"\n[{get_timestamp()}] Load Balancer | Request diterima dari {client_addr}")
         print(f"[{get_timestamp()}] Load Balancer | Data: \"{data}\"")
 
-        # Pilih backend server (Round-Robin)
+        # Pilih backend server (Round-Robin dengan batasan koneksi)
         server = get_next_server()
         if server is None:
-            error_msg = "Error: Semua backend server tidak aktif!"
+            error_msg = "Error: Semua backend server tidak aktif atau sedang sibuk!"
             print(f"[{get_timestamp()}] Load Balancer | {error_msg}")
             client_conn.sendall(error_msg.encode("utf-8"))
             return
@@ -119,6 +138,10 @@ def forward_request(client_conn, client_addr):
         print(f"[{get_timestamp()}] Load Balancer | Error: {e}")
     finally:
         client_conn.close()
+        # Jika semaphore server pernah di-acquire saat forward_request, lepaskan kuncinya sekarang
+        # Kita perlu mengecek "server" ada karena bisa jadi gagal mendapatkan server dari "get_next_server"
+        if server is not None:
+            server_semaphores[server[1]].release()
 
 
 def print_stats():
