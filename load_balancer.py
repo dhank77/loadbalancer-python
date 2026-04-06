@@ -21,6 +21,9 @@ BACKEND_SERVERS = [
 LOAD_BALANCER_HOST = "127.0.0.1"
 LOAD_BALANCER_PORT = 8000
 
+# Mode algoritma penyebaran tugas ("ROUND_ROBIN" atau "REPLICATION")
+LB_MODE = "REPLICATION"
+
 # Round-robin counter (thread-safe)
 current_server_index = 0
 index_lock = threading.Lock()
@@ -94,6 +97,47 @@ def forward_request(client_conn, client_addr):
 
         print(f"\n[{get_timestamp()}] Load Balancer | Request diterima dari {client_addr}")
         print(f"[{get_timestamp()}] Load Balancer | Data: \"{data}\"")
+
+        if LB_MODE == "REPLICATION":
+            # REPLIKASI SISTEM: Kirim request ke SEMUA server yang aktif
+            print(f"[{get_timestamp()}] Load Balancer | Meneruskan ke Semua Server (Replikasi Sistem)")
+            responses = []
+            
+            for server_host, server_port in BACKEND_SERVERS:
+                if server_semaphores[server_port].acquire(blocking=False):
+                    try:
+                        if not check_server_health(server_host, server_port):
+                            print(f"[{get_timestamp()}] Load Balancer | Server-{server_port} tidak aktif, skip replikasi...")
+                            continue
+                            
+                        backend_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        backend_socket.settimeout(5)
+                        backend_socket.connect((server_host, server_port))
+                        backend_socket.sendall(data.encode("utf-8"))
+                        
+                        response = backend_socket.recv(4096).decode("utf-8")
+                        backend_socket.close()
+                        
+                        responses.append(response)
+                        
+                        with stats_lock:
+                            stats[server_port] += 1
+                            
+                    except Exception as e:
+                        print(f"[{get_timestamp()}] Load Balancer | Gagal replikasi ke Server-{server_port}: {e}")
+                    finally:
+                        server_semaphores[server_port].release()
+                else:
+                    print(f"[{get_timestamp()}] Load Balancer | Server-{server_port} sedang sibuk, skip replikasi...")
+
+            if responses:
+                client_conn.sendall(responses[0].encode("utf-8"))
+                print(f"[{get_timestamp()}] Load Balancer | Response replikasi diteruskan ke client")
+            else:
+                error_msg = "Error: Semua server replikasi gagal atau sibuk!"
+                print(f"[{get_timestamp()}] Load Balancer | {error_msg}")
+                client_conn.sendall(error_msg.encode("utf-8"))
+            return
 
         # Pilih backend server (Round-Robin dengan batasan koneksi)
         server = get_next_server()
@@ -172,7 +216,7 @@ def start_load_balancer():
         print(f"  LOAD BALANCER - Sistem Distribusi")
         print(f"{'='*60}")
         print(f"[{get_timestamp()}] Load Balancer | Berjalan di {LOAD_BALANCER_HOST}:{LOAD_BALANCER_PORT}")
-        print(f"[{get_timestamp()}] Load Balancer | Algoritma: Round-Robin")
+        print(f"[{get_timestamp()}] Load Balancer | Mode Algoritma: {LB_MODE}")
         print(f"[{get_timestamp()}] Load Balancer | Backend Servers:")
         for host, port in BACKEND_SERVERS:
             status = "✓ Aktif" if check_server_health(host, port) else "✗ Tidak Aktif"

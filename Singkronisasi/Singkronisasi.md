@@ -1,3 +1,7 @@
+# Nama: M. Hamdani Ilham Latjoro
+# NIM: D082252019
+# Sistem Distribusi dengan Singkronisasi
+
 # Mekanisme Sinkronisasi pada Simulasi Sistem Terdistribusi
 
 Dalam simulasi sistem terdistribusi ini, terdapat beberapa titik kritis yang memerlukan mekanisme **Sinkronisasi (Synchronization)** agar sistem dapat berjalan dengan semestinya: di **Load Balancer** (untuk mengatur antrian request dan kesehatan koneksi) dan di **Server Cluster** (menjaga konsistensi data pada *Shared Database*).
@@ -144,3 +148,13 @@ Berkat sinkronisasi penulisan diatas, isi `database.txt` tercatat dengan rapi ta
 [10:02:00.230] Server-9001 memproses '{"client_id": "1", "task_id": "TASK-1-2", "task_type": "Send Email", "timestamp": "10:02:01.254"}' dari 127.0.0.1
 ```
 Semua file tercetak satu per satu per baris dengan bersih. Inilah tujuan utama *Distributed Lock Synchronization* di sistem terdistribusi.
+
+## Lampiran: Screenshot
+
+### Kode Program
+
+![Kode Program](code.png)
+
+### Log Output
+
+![Log Output](logs.png)
