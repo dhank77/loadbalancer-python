@@ -22,7 +22,10 @@ LOAD_BALANCER_HOST = "127.0.0.1"
 LOAD_BALANCER_PORT = 8000
 
 # Mode algoritma penyebaran tugas ("ROUND_ROBIN" atau "REPLICATION")
-LB_MODE = "REPLICATION"
+LB_MODE = "ROUND_ROBIN"
+
+# Fitur Fault Tolerance (Otomatis memindahkan beban ke server lain jika error)
+FAULT_TOLERANT = True
 
 # Round-robin counter (thread-safe)
 current_server_index = 0
@@ -140,41 +143,65 @@ def forward_request(client_conn, client_addr):
             return
 
         # Pilih backend server (Round-Robin dengan batasan koneksi)
-        server = get_next_server()
-        if server is None:
-            error_msg = "Error: Semua backend server tidak aktif atau sedang sibuk!"
+        max_retries = len(BACKEND_SERVERS) if FAULT_TOLERANT else 1
+        retries = 0
+        success = False
+
+        while retries < max_retries and not success:
+            server = get_next_server()
+            if server is None:
+                error_msg = "Error: Semua backend server tidak aktif atau sedang sibuk!"
+                print(f"[{get_timestamp()}] Load Balancer | {error_msg}")
+                client_conn.sendall(error_msg.encode("utf-8"))
+                return
+
+            server_host, server_port = server
+            if FAULT_TOLERANT and retries > 0:
+                print(f"[{get_timestamp()}] Load Balancer | Fault Tolerance -> Mengalihkan ke Server-{server_port}")
+            else:
+                print(f"[{get_timestamp()}] Load Balancer | Meneruskan ke Server-{server_port} (Round-Robin)")
+
+            # Koneksi ke backend server
+            backend_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            backend_socket.settimeout(5)
+
+            try:
+                backend_socket.connect((server_host, server_port))
+                backend_socket.sendall(data.encode("utf-8"))
+
+                # Terima response dari backend
+                response = backend_socket.recv(4096).decode("utf-8")
+
+                # Update statistik
+                with stats_lock:
+                    stats[server_port] += 1
+
+                # Kirim response ke client
+                client_conn.sendall(response.encode("utf-8"))
+                print(f"[{get_timestamp()}] Load Balancer | Response dari Server-{server_port} diteruskan ke client")
+                success = True
+
+            except (ConnectionRefusedError, socket.timeout, OSError) as e:
+                error_msg = f"Gagal terhubung ke Server-{server_port}: {e}"
+                print(f"[{get_timestamp()}] Load Balancer | Error: {error_msg}")
+                
+                if FAULT_TOLERANT and retries < max_retries - 1:
+                    print(f"[{get_timestamp()}] Load Balancer | [FAULT TOLERANCE] Mencoba server lain...")
+                elif not FAULT_TOLERANT or retries == max_retries - 1:
+                    client_conn.sendall(error_msg.encode("utf-8"))
+            finally:
+                backend_socket.close()
+                # Lepaskan semaphore untuk server ini sebelum ke server berikutnya
+                server_semaphores[server_port].release()
+                # Hindari pelepasan ganda di finally global
+                server = None
+
+            retries += 1
+
+        if not success and FAULT_TOLERANT:
+            error_msg = "Error: Fault Tolerance gagal. Semua server dalam percobaan gagal merespons!"
             print(f"[{get_timestamp()}] Load Balancer | {error_msg}")
             client_conn.sendall(error_msg.encode("utf-8"))
-            return
-
-        server_host, server_port = server
-        print(f"[{get_timestamp()}] Load Balancer | Meneruskan ke Server-{server_port} (Round-Robin)")
-
-        # Koneksi ke backend server
-        backend_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        backend_socket.settimeout(5)
-
-        try:
-            backend_socket.connect((server_host, server_port))
-            backend_socket.sendall(data.encode("utf-8"))
-
-            # Terima response dari backend
-            response = backend_socket.recv(4096).decode("utf-8")
-            backend_socket.close()
-
-            # Update statistik
-            with stats_lock:
-                stats[server_port] += 1
-
-            # Kirim response ke client
-            client_conn.sendall(response.encode("utf-8"))
-            print(f"[{get_timestamp()}] Load Balancer | Response dari Server-{server_port} diteruskan ke client")
-
-        except (ConnectionRefusedError, socket.timeout) as e:
-            error_msg = f"Error: Gagal terhubung ke Server-{server_port}: {e}"
-            print(f"[{get_timestamp()}] Load Balancer | {error_msg}")
-            client_conn.sendall(error_msg.encode("utf-8"))
-            backend_socket.close()
 
     except ConnectionResetError:
         print(f"[{get_timestamp()}] Load Balancer | Koneksi terputus dari {client_addr}")
@@ -217,6 +244,7 @@ def start_load_balancer():
         print(f"{'='*60}")
         print(f"[{get_timestamp()}] Load Balancer | Berjalan di {LOAD_BALANCER_HOST}:{LOAD_BALANCER_PORT}")
         print(f"[{get_timestamp()}] Load Balancer | Mode Algoritma: {LB_MODE}")
+        print(f"[{get_timestamp()}] Load Balancer | Fault Tolerant: {'Aktif' if FAULT_TOLERANT else 'Nonaktif'}")
         print(f"[{get_timestamp()}] Load Balancer | Backend Servers:")
         for host, port in BACKEND_SERVERS:
             status = "✓ Aktif" if check_server_health(host, port) else "✗ Tidak Aktif"
