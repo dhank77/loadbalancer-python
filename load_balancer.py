@@ -9,6 +9,7 @@ import socket
 import threading
 import sys
 import time
+import json
 from datetime import datetime
 
 # Konfigurasi backend servers
@@ -99,7 +100,25 @@ def forward_request(client_conn, client_addr):
             return
 
         print(f"\n[{get_timestamp()}] Load Balancer | Request diterima dari {client_addr}")
-        print(f"[{get_timestamp()}] Load Balancer | Data: \"{data}\"")
+
+        # --- IMPLEMENTASI KEAMANAN (SISTEM DISTRIBUSI) ---
+        try:
+            payload = json.loads(data)
+            if payload.get("auth_token") != "DIST_SYS_SECURE_TOKEN":
+                raise ValueError("Token tidak valid atau kosong")
+        except json.JSONDecodeError:
+            error_msg = "Error: Format request tidak valid (Harus berupa JSON)!"
+            print(f"[{get_timestamp()}] Load Balancer | [SECURITY] {error_msg}")
+            client_conn.sendall(error_msg.encode("utf-8"))
+            return
+        except ValueError as ve:
+            error_msg = f"Error: UNAUTHORIZED! Sistem Menolak Akses ({ve})"
+            print(f"[{get_timestamp()}] Load Balancer | [SECURITY] {error_msg} dari {client_addr}")
+            client_conn.sendall(error_msg.encode("utf-8"))
+            return
+            
+        print(f"[{get_timestamp()}] Load Balancer | [SECURITY VERIFIED] Data: \"{data}\"")
+        # --- END KEAMANAN ---
 
         if LB_MODE == "REPLICATION":
             # REPLIKASI SISTEM: Kirim request ke SEMUA server yang aktif

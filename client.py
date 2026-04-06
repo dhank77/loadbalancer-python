@@ -36,7 +36,8 @@ def send_request(client_id, request_num):
             "client_id": client_id,
             "task_id": f"TASK-{client_id}-{request_num}",
             "task_type": random.choice(task_types),
-            "timestamp": get_timestamp()
+            "timestamp": get_timestamp(),
+            "auth_token": "DIST_SYS_SECURE_TOKEN"  # Token Keamanan Sistem Distribusi
         }
         
         # Konversi ke string JSON (UTF-8)

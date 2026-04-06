@@ -1,15 +1,25 @@
-[10:01:05.593] Server-9002 memproses '{"client_id": "2", "task_id": "TASK-2-1", "task_type": "Image Rendering", "timestamp": "10:01:05.087"}' dari 127.0.0.1
-[10:01:05.593] Server-9001 memproses '{"client_id": "3", "task_id": "TASK-3-1", "task_type": "Image Rendering", "timestamp": "10:01:05.087"}' dari 127.0.0.1
-[10:01:05.593] Server-9001 memproses '{"client_id": "1", "task_id": "TASK-1-1", "task_type": "Send Email", "timestamp": "10:01:05.087"}' dari 127.0.0.1
-[10:01:06.602] Server-9001 memproses '{"client_id": "2", "task_id": "TASK-2-2", "task_type": "Database Query", "timestamp": "10:01:06.097"}' dari 127.0.0.1
-[10:01:06.603] Server-9002 memproses '{"client_id": "3", "task_id": "TASK-3-2", "task_type": "Database Query", "timestamp": "10:01:06.101"}' dari 127.0.0.1
-[10:01:06.604] Server-9002 memproses '{"client_id": "1", "task_id": "TASK-1-2", "task_type": "Image Rendering", "timestamp": "10:01:06.097"}' dari 127.0.0.1
-[10:01:07.611] Server-9002 memproses '{"client_id": "2", "task_id": "TASK-2-3", "task_type": "Data Processing", "timestamp": "10:01:07.108"}' dari 127.0.0.1
-[10:01:07.615] Server-9001 memproses '{"client_id": "3", "task_id": "TASK-3-3", "task_type": "Database Query", "timestamp": "10:01:07.108"}' dari 127.0.0.1
-[10:01:07.615] Server-9001 memproses '{"client_id": "1", "task_id": "TASK-1-3", "task_type": "Send Email", "timestamp": "10:01:07.110"}' dari 127.0.0.1
-[10:01:08.622] Server-9002 memproses '{"client_id": "3", "task_id": "TASK-3-4", "task_type": "Database Query", "timestamp": "10:01:08.117"}' dari 127.0.0.1
-[10:01:08.623] Server-9001 memproses '{"client_id": "2", "task_id": "TASK-2-4", "task_type": "Data Processing", "timestamp": "10:01:08.117"}' dari 127.0.0.1
-[10:01:08.624] Server-9002 memproses '{"client_id": "1", "task_id": "TASK-1-4", "task_type": "Data Processing", "timestamp": "10:01:08.121"}' dari 127.0.0.1
-[10:01:09.631] Server-9001 memproses '{"client_id": "1", "task_id": "TASK-1-5", "task_type": "Send Email", "timestamp": "10:01:09.129"}' dari 127.0.0.1
-[10:01:09.635] Server-9001 memproses '{"client_id": "2", "task_id": "TASK-2-5", "task_type": "Send Email", "timestamp": "10:01:09.128"}' dari 127.0.0.1
-[10:01:09.635] Server-9002 memproses '{"client_id": "3", "task_id": "TASK-3-5", "task_type": "Data Processing", "timestamp": "10:01:09.128"}' dari 127.0.0.1
+[12:59:15.486] Server-9001 memproses '{"client_id": "1", "task_id": "TASK-1-1", "task_type": "Database Query", "timestamp": "12:59:14.982", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:15.488] Server-9001 memproses '{"client_id": "4", "task_id": "TASK-4-1", "task_type": "Send Email", "timestamp": "12:59:14.984", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:15.488] Server-9002 memproses '{"client_id": "2", "task_id": "TASK-2-1", "task_type": "Database Query", "timestamp": "12:59:14.982", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:15.488] Server-9003 memproses '{"client_id": "3", "task_id": "TASK-3-1", "task_type": "Image Rendering", "timestamp": "12:59:14.983", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:15.489] Server-9002 memproses '{"client_id": "5", "task_id": "TASK-5-1", "task_type": "Database Query", "timestamp": "12:59:14.984", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:16.495] Server-9001 memproses '{"client_id": "4", "task_id": "TASK-4-2", "task_type": "Data Processing", "timestamp": "12:59:15.992", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:16.497] Server-9002 memproses '{"client_id": "2", "task_id": "TASK-2-2", "task_type": "Send Email", "timestamp": "12:59:15.994", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:16.497] Server-9001 memproses '{"client_id": "5", "task_id": "TASK-5-2", "task_type": "Send Email", "timestamp": "12:59:15.995", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:16.497] Server-9003 memproses '{"client_id": "1", "task_id": "TASK-1-2", "task_type": "Database Query", "timestamp": "12:59:15.991", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:16.500] Server-9003 memproses '{"client_id": "3", "task_id": "TASK-3-2", "task_type": "Data Processing", "timestamp": "12:59:15.995", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:17.502] Server-9002 memproses '{"client_id": "4", "task_id": "TASK-4-3", "task_type": "Image Rendering", "timestamp": "12:59:17.001", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:17.506] Server-9002 memproses '{"client_id": "2", "task_id": "TASK-2-3", "task_type": "Data Processing", "timestamp": "12:59:17.001", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:17.506] Server-9001 memproses '{"client_id": "3", "task_id": "TASK-3-3", "task_type": "Send Email", "timestamp": "12:59:17.001", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:17.506] Server-9003 memproses '{"client_id": "5", "task_id": "TASK-5-3", "task_type": "Database Query", "timestamp": "12:59:17.001", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:17.508] Server-9003 memproses '{"client_id": "1", "task_id": "TASK-1-3", "task_type": "Image Rendering", "timestamp": "12:59:17.002", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:18.514] Server-9002 memproses '{"client_id": "5", "task_id": "TASK-5-4", "task_type": "Data Processing", "timestamp": "12:59:18.012", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:18.515] Server-9003 memproses '{"client_id": "2", "task_id": "TASK-2-4", "task_type": "Image Rendering", "timestamp": "12:59:18.012", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:18.517] Server-9001 memproses '{"client_id": "4", "task_id": "TASK-4-4", "task_type": "Send Email", "timestamp": "12:59:18.009", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:18.518] Server-9001 memproses '{"client_id": "3", "task_id": "TASK-3-4", "task_type": "Image Rendering", "timestamp": "12:59:18.012", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:18.518] Server-9002 memproses '{"client_id": "1", "task_id": "TASK-1-4", "task_type": "Database Query", "timestamp": "12:59:18.014", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:19.523] Server-9003 memproses '{"client_id": "1", "task_id": "TASK-1-5", "task_type": "Database Query", "timestamp": "12:59:19.022", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:19.526] Server-9001 memproses '{"client_id": "2", "task_id": "TASK-2-5", "task_type": "Image Rendering", "timestamp": "12:59:19.020", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:19.527] Server-9003 memproses '{"client_id": "5", "task_id": "TASK-5-5", "task_type": "Send Email", "timestamp": "12:59:19.020", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:19.527] Server-9002 memproses '{"client_id": "3", "task_id": "TASK-3-5", "task_type": "Send Email", "timestamp": "12:59:19.022", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
+[12:59:19.528] Server-9001 memproses '{"client_id": "4", "task_id": "TASK-4-5", "task_type": "Data Processing", "timestamp": "12:59:19.022", "auth_token": "DIST_SYS_SECURE_TOKEN"}' dari 127.0.0.1
